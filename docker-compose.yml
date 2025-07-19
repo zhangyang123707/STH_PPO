@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  sth-model:
+    build: .
+    container_name: sth-traffic-control
+    volumes:
+      # 挂载数据目录
+      - ./data:/app/data
+      # 挂载模型保存目录
+      - ./models:/app/models
+      # 挂载日志目录
+      - ./logs:/app/logs
+      # 挂载TensorBoard日志
+      - ./runs:/app/runs
+    environment:
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=""
+    ports:
+      - "6006:6006"  # TensorBoard端口
+    command: python STH_example.py
+    
+  # 如果需要GPU支持，可以使用以下配置
+  sth-model-gpu:
+    build: .
+    container_name: sth-traffic-control-gpu
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./runs:/app/runs
+    environment:
+      - PYTHONPATH=/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "6006:6006"
+    command: python STH_example.py
+    profiles:
+      - gpu 
